@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Embedded Marketplace</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        background: #111;
+        color: #eee;
+      }
+      #bar {
+        padding: 10px 16px;
+        background: #1c1c1c;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      button {
+        padding: 8px 14px;
+        cursor: pointer;
+      }
+      #status {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+      #frame-wrap {
+        width: 100%;
+        height: calc(100vh - 50px);
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <button id="start">Launch Marketplace Session</button>
+      <span id="status"></span>
+    </div>
+    <div id="frame-wrap"></div>
+
+    <script>
+      document.getElementById('start').onclick = async () => {
+        const status = document.getElementById('status');
+        status.textContent = 'Starting remote browser...';
+        try {
+          const res = await fetch('/api/session');
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+
+          status.textContent = 'Session ' + data.id + ' running';
+
+          const iframe = document.createElement('iframe');
+          // interactive=true lets you click/type; showControls=true adds a URL bar
+          iframe.src = data.viewerUrl + '?interactive=true&showControls=true';
+          iframe.setAttribute('allow', 'clipboard-read; clipboard-write');
+          const wrap = document.getElementById('frame-wrap');
+          wrap.innerHTML = '';
+          wrap.appendChild(iframe);
+        } catch (err) {
+          status.textContent = 'Error: ' + err.message;
+        }
+      };
+    </script>
+  </body>
+</html>

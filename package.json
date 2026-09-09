@@ -1,0 +1,14 @@
+{
+  "name": "embedded-marketplace",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "steel-sdk": "^0.18.0",
+    "puppeteer-core": "^22.13.1",
+    "dotenv": "^16.4.5"
+  }
+}
