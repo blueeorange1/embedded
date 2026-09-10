@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Embedded Browser</title>
+    <title>Voiles Browser</title>
     <style>
       body {
         margin: 0;
@@ -57,7 +57,9 @@
     </div>
     <div id="frame-wrap"></div>
 
+    <script src="./config.js"></script>
     <script>
+      const apiBaseUrl = window.APP_CONFIG?.apiBaseUrl || '';
       const startButton = document.getElementById('start');
       const urlInput = document.getElementById('url');
       let opening = false;
@@ -84,7 +86,7 @@
         startButton.disabled = true;
         status.textContent = 'Starting remote browser...';
         try {
-          const res = await fetch('/api/session?url=' + encodeURIComponent(destination.href));
+          const res = await fetch(apiBaseUrl + '/api/session?url=' + encodeURIComponent(destination.href));
           const data = await res.json();
           if (data.error) throw new Error(data.error);
 
