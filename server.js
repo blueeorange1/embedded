@@ -8,9 +8,18 @@ const steel = new Steel({ steelAPIKey: process.env.STEEL_API_KEY });
 
 app.use(express.static('public'));
 
-// Creates a fresh cloud browser session and points it at Marketplace
+// Creates a fresh cloud browser session and points it at the requested URL
 app.get('/api/session', async (req, res) => {
   try {
+    if (typeof req.query.url !== 'string' || !req.query.url.trim()) {
+      return res.status(400).json({ error: 'A URL is required.' });
+    }
+
+    const destination = new URL(req.query.url);
+    if (!['http:', 'https:'].includes(destination.protocol)) {
+      return res.status(400).json({ error: 'Only HTTP and HTTPS links are supported.' });
+    }
+
     // 1. Spin up a real Chrome instance in Steel's cloud
     const session = await steel.sessions.create();
 
@@ -20,7 +29,7 @@ app.get('/api/session', async (req, res) => {
     });
     const pages = await browser.pages();
     const page = pages[0] ?? (await browser.newPage());
-    await page.goto('https://www.facebook.com/marketplace', {
+    await page.goto(destination.href, {
       waitUntil: 'domcontentloaded',
     });
     // We disconnect (not close) so the remote session keeps running

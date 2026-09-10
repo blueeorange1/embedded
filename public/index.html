@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Embedded Marketplace</title>
+    <title>Embedded Browser</title>
     <style>
       body {
         margin: 0;
@@ -21,6 +21,15 @@
         padding: 8px 14px;
         cursor: pointer;
       }
+      input {
+        flex: 1;
+        max-width: 560px;
+        padding: 8px 10px;
+        border: 1px solid #444;
+        border-radius: 4px;
+        background: #111;
+        color: #eee;
+      }
       #status {
         font-size: 14px;
         opacity: 0.8;
@@ -38,7 +47,8 @@
   </head>
   <body>
     <div id="bar">
-      <button id="start">Launch Marketplace Session</button>
+      <input id="url" type="url" placeholder="https://example.com" value="https://www.facebook.com/marketplace" aria-label="URL to open" />
+      <button id="start">Open Link</button>
       <span id="status"></span>
     </div>
     <div id="frame-wrap"></div>
@@ -46,9 +56,24 @@
     <script>
       document.getElementById('start').onclick = async () => {
         const status = document.getElementById('status');
+        const urlInput = document.getElementById('url');
+        const url = urlInput.value.trim();
+
+        let destination;
+        try {
+          destination = new URL(url);
+          if (!['http:', 'https:'].includes(destination.protocol)) {
+            throw new Error('Only HTTP and HTTPS links are supported.');
+          }
+        } catch (err) {
+          status.textContent = 'Error: ' + (err.message || 'Enter a valid URL.');
+          urlInput.focus();
+          return;
+        }
+
         status.textContent = 'Starting remote browser...';
         try {
-          const res = await fetch('/api/session');
+          const res = await fetch('/api/session?url=' + encodeURIComponent(destination.href));
           const data = await res.json();
           if (data.error) throw new Error(data.error);
 
