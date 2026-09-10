@@ -1,4 +1,4 @@
-// Leave this empty for local development. Set it to your deployed backend URL for GitHub Pages.
+// Leave this empty when Cloud Run serves the frontend and backend together.
 window.APP_CONFIG = {
-  apiBaseUrl: 'https://embedded-ugqo.onrender.com'
+  apiBaseUrl: ''
 };
