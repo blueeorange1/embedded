@@ -8,6 +8,22 @@ const steel = new Steel({ steelAPIKey: process.env.STEEL_API_KEY });
 
 app.use(express.static('public'));
 
+async function navigateSession(session, destination) {
+  let browser;
+  try {
+    browser = await puppeteer.connect({
+      browserWSEndpoint: session.websocketUrl,
+    });
+    const pages = await browser.pages();
+    const page = pages[0] ?? (await browser.newPage());
+    await page.goto(destination, { waitUntil: 'domcontentloaded' });
+  } catch (err) {
+    console.error('Unable to navigate session:', err);
+  } finally {
+    await browser?.disconnect();
+  }
+}
+
 // Creates a fresh cloud browser session and points it at the requested URL
 app.get('/api/session', async (req, res) => {
   try {
@@ -23,18 +39,8 @@ app.get('/api/session', async (req, res) => {
     // 1. Spin up a real Chrome instance in Steel's cloud
     const session = await steel.sessions.create();
 
-    // 2. Connect to it over the Chrome DevTools Protocol and navigate
-    const browser = await puppeteer.connect({
-      browserWSEndpoint: session.websocketUrl,
-    });
-    const pages = await browser.pages();
-    const page = pages[0] ?? (await browser.newPage());
-    await page.goto(destination.href, {
-      waitUntil: 'domcontentloaded',
-    });
-    // We disconnect (not close) so the remote session keeps running
-    // and you take over driving it yourself via the live view.
-    await browser.disconnect();
+    // Start navigation in the background so the viewer can load immediately.
+    void navigateSession(session, destination.href);
 
     res.json({
       id: session.id,

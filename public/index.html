@@ -21,6 +21,10 @@
         padding: 8px 14px;
         cursor: pointer;
       }
+      button:disabled {
+        cursor: wait;
+        opacity: 0.6;
+      }
       input {
         flex: 1;
         max-width: 560px;
@@ -54,9 +58,14 @@
     <div id="frame-wrap"></div>
 
     <script>
-      document.getElementById('start').onclick = async () => {
+      const startButton = document.getElementById('start');
+      const urlInput = document.getElementById('url');
+      let opening = false;
+
+      async function openLink() {
+        if (opening) return;
+
         const status = document.getElementById('status');
-        const urlInput = document.getElementById('url');
         const url = urlInput.value.trim();
 
         let destination;
@@ -71,13 +80,15 @@
           return;
         }
 
+        opening = true;
+        startButton.disabled = true;
         status.textContent = 'Starting remote browser...';
         try {
           const res = await fetch('/api/session?url=' + encodeURIComponent(destination.href));
           const data = await res.json();
           if (data.error) throw new Error(data.error);
 
-          status.textContent = 'Session ' + data.id + ' running';
+          status.textContent = 'Session ' + data.id + ' loading';
 
           const iframe = document.createElement('iframe');
           // interactive=true lets you click/type; showControls=true adds a URL bar
@@ -88,8 +99,16 @@
           wrap.appendChild(iframe);
         } catch (err) {
           status.textContent = 'Error: ' + err.message;
+        } finally {
+          opening = false;
+          startButton.disabled = false;
         }
-      };
+      }
+
+      startButton.onclick = openLink;
+      urlInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') openLink();
+      });
     </script>
   </body>
 </html>
